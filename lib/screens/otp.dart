@@ -41,7 +41,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   // Send Again (resend OTP)
-  void resendOtp() async {
+  Future<void> resendOtp() async {
     setState(() {
       _start = 120;
     });
@@ -81,9 +81,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   // Verify OTP
-  void verifyOtp() async {
+  Future<void> verifyOtp() async {
     String otp = otpControllers.map((controller) => controller.text).join();
-    print('Entered OTP: $otp'); // Debug OTP input
+    print('Entered OTP: $otp');
+    // Debug OTP input
 
     if (otp.length < 4) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +94,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     }
 
     // API call to verify OTP
-    final String apiUrl = 'http://devapiv4.dealsdray.com/api/v2/user/otp/verify'; // Replace with actual API URL
+    final String apiUrl = 'http://devapiv4.dealsdray.com/api/v2/user/otp/verification'; // Replace with actual API URL
     final Map<String, String> data = {
       "mobileNumber": widget.mobileNumber,
       "otp": otp,
@@ -114,8 +115,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         print('Parsed JSON: $jsonResponse'); // Debug JSON response
 
         if (jsonResponse['status'] == 'success') {
-          // Navigate to the landing page for existing users or registration page for new users
-          if (jsonResponse['isExistingUser'] == true) {
+          bool isExistingUser = jsonResponse['isExistingUser'] ?? false;
+          print('User exists: $isExistingUser'); // Debug user existence
+
+          if (isExistingUser) {
             print('Navigating to LandingPage'); // Debug navigation
             Navigator.pushReplacement(
               context,
@@ -139,7 +142,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to verify OTP. Please try again.')),
+          SnackBar(content: Text('Failed to verify OTP. Status code: ${response.statusCode}')),
         );
       }
     } catch (error) {
